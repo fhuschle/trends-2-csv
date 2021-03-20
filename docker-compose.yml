@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  trends-2-csv:
+    image: trends-2-csv
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    environment:
+      TRENDS2CSV_KEYWORDS: 'corona,virus,trump'
+      TRENDS2CSV_FILENAME: 'compose_export.csv'
+      TRENDS2CSV_START: '2019-01-01'
+    volumes:
+      - "./result:/export"

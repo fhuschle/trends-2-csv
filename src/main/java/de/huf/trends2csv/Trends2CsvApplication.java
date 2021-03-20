@@ -9,6 +9,7 @@ import de.huf.trends2csv.service.trend.TrendsService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -18,7 +19,6 @@ import org.springframework.core.env.Environment;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +32,24 @@ public class Trends2CsvApplication implements ApplicationRunner {
     private final TrendsService trendsService;
     private final CsvExportComponent csvExportComponent;
     private final Environment environment;
+
+    @Value("${TRENDS2CSV_KEYWORDS:example1,example2}")
+    private String[] keywords;
+
+    @Value("${TRENDS2CSV_FILENAME:trends_export.csv}")
+    private String filename;
+
+    @Value("#{T(java.time.LocalDate).parse('${TRENDS2CSV_START:2019-09-01}')}")
+    private LocalDate start;
+
+    private LocalDate end = LocalDate.now();
+
+    @Value("${TRENDS2CSV_END:#{null}}")
+    private void setLocalDate(final String localDateStr) {
+        if (localDateStr != null && !localDateStr.isEmpty()) {
+            end = LocalDate.parse(localDateStr);
+        }
+    }
 
     @Getter
     @RequiredArgsConstructor
@@ -53,10 +71,6 @@ public class Trends2CsvApplication implements ApplicationRunner {
         if (Arrays.stream(environment.getActiveProfiles()).noneMatch(profile -> profile.equals("integrationtest"))) {
             final long startTime = System.currentTimeMillis();
 
-            String[] keywords = new String[]{"example"};
-            String filename = "trends_export.csv";
-            LocalDate start = LocalDate.of(2019, Month.SEPTEMBER, 1);
-            LocalDate end = LocalDate.now();
             for (final String arg : args.getNonOptionArgs()) {
                 if (arg.contains(ProgrammArgs.KEYWORDS.getArgName())) {
                     keywords = arg.replace(ProgrammArgs.KEYWORDS.getArgName(), "").split(KEYWORD_SEPERATOR);
